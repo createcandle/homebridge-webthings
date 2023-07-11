@@ -136,6 +136,7 @@ class HomebridgeAdapter(Adapter):
         self.hb_service_path = os.path.join(self.hb_path, "opt","homebridge","lib","node_modules","homebridge-config-ui-x","dist/bin/hb-service.js")
         self.hb_storage_path = os.path.join(self.hb_path, "var","lib","homebridge") # TODO: just make this the data root path for optimal backup support?
         self.hb_plugins_path = os.path.join(self.hb_storage_path, "node_modules") 
+        self.hb_webthings_plugin_path = os.path.join(self.hb_plugins_path, "homebridge-webthings") 
         self.hb_logs_file_path = os.path.join(self.hb_storage_path, "homebridge.log") 
         self.hb_config_file_path = os.path.join(self.hb_storage_path, "config.json") 
         
@@ -438,6 +439,10 @@ class HomebridgeAdapter(Adapter):
         os.system('pkill hb-service')
         time.sleep(1)
         
+        if not os.path.isdir(self.hb_webthings_plugin_path):
+            print("Error, the Homebridge-webthings module seems to be missing")
+            self.send_pairing_prompt( "Error, Homebridge Webthings module is missing" )
+            
         # Update the config file
         if not os.path.isfile(self.hb_config_file_path):
             print("Error, Homebridge configuration file does not exist")
