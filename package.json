@@ -74,7 +74,6 @@
     "jsonpath": "^1.1.1",
     "polling-to-event": ">=2.0.2",
     "request": "^2.65.0",
-    "mqtt-webthings": "^0.0.1",
     "webthings-client": "^4.1.0"
   }
 }
