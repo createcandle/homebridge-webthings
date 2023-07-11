@@ -1,5 +1,5 @@
 {
-  "name": "homebridge-mqttthing",
+  "name": "homebridge-webthings",
   "version": "1.1.44",
   "description": "Homebridge plugin supporting various services over MQTT",
   "main": "index.js",
@@ -13,11 +13,11 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/arachnetech/homebridge-mqttthing.git"
+    "url": "git+https://github.com/arachnetech/homebridge-webthings.git"
   },
   "keywords": [
     "homebridge-plugin",
-    "MQTT",
+    "webthings",
     "homekit",
     "Siri",
     "IoT",
@@ -65,13 +65,16 @@
   "author": "David Miller",
   "license": "Apache-2.0",
   "bugs": {
-    "url": "https://github.com/arachnetech/homebridge-mqttthing/issues"
+    "url": "https://github.com/arachnetech/homebridge-webthings/issues"
   },
-  "homepage": "https://github.com/arachnetech/homebridge-mqttthing#readme",
+  "homepage": "https://github.com/arachnetech/homebridge-webthings#readme",
   "dependencies": {
     "fakegato-history": "^0.6.2",
     "homebridge-lib": "^6.0.1",
     "jsonpath": "^1.1.1",
-    "mqtt": "^4.3.2"
+    "polling-to-event": ">=2.0.2",
+    "request": "^2.65.0",
+    "mqtt-webthings": "^0.0.1",
+    "webthings-client": "^4.1.0"
   }
 }

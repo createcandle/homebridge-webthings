@@ -24,7 +24,7 @@ function makeThing( log, accessoryConfig, api ) {
     function makeAccessoryInformationService() {
         var informationService = new Service.AccessoryInformation();
 
-        informationService.setCharacteristic( Characteristic.Manufacturer, accessoryConfig.manufacturer || "mqttthing" );
+        informationService.setCharacteristic( Characteristic.Manufacturer, accessoryConfig.manufacturer || "webthing" );
         informationService.setCharacteristic( Characteristic.Model, accessoryConfig.model || accessoryConfig.type );
         informationService.setCharacteristic( Characteristic.SerialNumber, accessoryConfig.serialNumber || ( os.hostname() + "-" + accessoryConfig.name ) );
         informationService.setCharacteristic( Characteristic.FirmwareRevision, accessoryConfig.firmwareRevision || packagedef.version );
@@ -152,7 +152,7 @@ function makeThing( log, accessoryConfig, api ) {
                 return counterFile;
             }
 
-            const c_mySetContext = { mqttthing: '---my-set-context--' };
+            const c_mySetContext = { webthing: '---my-set-context--' };
 
             // constructor for fakegato-history options
             function HistoryOptions( isEventSensor = false ) {
@@ -290,7 +290,6 @@ function makeThing( log, accessoryConfig, api ) {
             }
 
             function isValid( charac, value ) {
-
                 // if validation is disabled, accept anything
                 if( config.validate === false ) {
                     return true;
@@ -506,7 +505,6 @@ function makeThing( log, accessoryConfig, api ) {
             }
 
             function addCharacteristic( service, property, characteristic, defaultValue, characteristicChanged, adaptiveEventName ) {
-
                 state[ property ] = defaultValue;
 
                 var charac = service.getCharacteristic( characteristic );
@@ -1937,7 +1935,7 @@ function makeThing( log, accessoryConfig, api ) {
                 }
             }
 
-            // Characteristic.DoorMoving (mqttthing simplified state)
+            // Characteristic.DoorMoving (webthing simplified state)
             function characteristic_DoorMoving( service ) {
                 characteristic_SimpleCurrentDoorState( service, 'doorMoving', config.topics.getDoorMoving, false, ( isMoving ) => {
                     if( isMoving ) {
@@ -2391,7 +2389,7 @@ function makeThing( log, accessoryConfig, api ) {
 
             // History for PowerConsumption (Eve-only)
             function history_PowerConsumption( historySvc, service ) {
-                // enable mqttthing energy counter, if there is no getTotalConsumption topic
+                // enable webthing energy counter, if there is no getTotalConsumption topic
                 const energyCounter = config.topics.getTotalConsumption ? false : true;
                 var lastLogEntry = { time: 0, power: 0 };  // for energyCounter
                 // counterFile for saving 'totalConsumption' and 'resetTotal'
@@ -3559,5 +3557,5 @@ module.exports = function( homebridge ) {
     HistoryService = fakegatoHistory( homebridge );
     homebridgePath = homebridge.user.storagePath();
 
-    homebridge.registerAccessory( "homebridge-mqttthing", "mqttthing", makeThing );
+    homebridge.registerAccessory( "homebridge-webthings", "webthings", makeThing );
 };
