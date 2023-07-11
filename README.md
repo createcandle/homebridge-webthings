@@ -3,11 +3,19 @@
 This Homebridge plugin makes it possible to integrate Homebridge with Webthings. It is installed automatically by the Candle Homebridge addon, of which it is an integral part.
 
 The addon can be found here:
+
 https://github.com/createcandle/homebridge
 
 Learn more about Candle here:
+
 https://www.candlesmarthome.com
 
+
+## origin
+
+This Node module is based on the homebridge-mqttthing project by Arachnetech:
+
+https://github.com/arachnetech/homebridge-mqttthing
 
 ## Supported Accessories
 
