@@ -19,7 +19,7 @@ https://github.com/arachnetech/homebridge-mqttthing
 
 ## Supported Accessories
 
-The following Homekit accessory types are supported:
+Most of following Homekit accessory types are supported:
 
    * [Air Pressure Sensor](docs/Accessories.md#air-pressure-sensor)
    * [Air Purifier](docs/Accessories.md#air-purifier)
