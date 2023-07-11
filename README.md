@@ -11,7 +11,7 @@ Learn more about Candle here:
 https://www.candlesmarthome.com
 
 
-## origin
+## Origin
 
 This Node module is based on the homebridge-mqttthing project by Arachnetech:
 
