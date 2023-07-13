@@ -1,5 +1,6 @@
 // MQTT Thing Accessory plugin for Homebridge
 // MQTT Library
+// Modified by Candle to connect to Webthings instead of MQTT
 
 'use strict'; // eslint-disable-line
 
@@ -179,7 +180,7 @@ var mqttlib = new function() {
             let codecPath = makeCodecPath( config.codec, ctx.homebridgePath );
             if( fs.existsSync( codecPath ) ) {
                 // load codec
-                console.log( 'Loading codec from ' + codecPath );
+                //console.log( 'Loading codec from ' + codecPath );
                 let codecMod = require( codecPath );
                 if( typeof codecMod.init === "function" ) {
 
@@ -286,7 +287,7 @@ var mqttlib = new function() {
         }
 
         var wt_client;
-        console.log("options.password: ", options.password)
+        //console.log("options.password: ", options.password)
         const token = options.password; //'eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6ImQwZDUwMTIwLTM2MjctNDBkNy1hMGI3LWI2ZjYxZDFhZmIxNSJ9.eyJjbGllbnRfaWQiOiJsb2NhbC10b2tlbiIsInJvbGUiOiJhY2Nlc3NfdG9rZW4iLCJzY29wZSI6Ii90aGluZ3M6cmVhZHdyaXRlIiwiaWF0IjoxNjg4OTgyNDc0LCJpc3MiOiJOb3Qgc2V0LiJ9.n5EQYmCYSuNLOFisSA_PtF-aUXglvUxfsbB9LYlZBsqi2u7a8T0rxRJh7KwsC7XlHyH7O2qF7DT0aC2jqkBdig';
 
         if(options.password.length == 0){
@@ -308,7 +309,7 @@ var mqttlib = new function() {
         myFunc()
         .then(
             function(value) {
-                console.log("hurray webthings client initialised");
+                //console.log("hurray webthings client initialised");
                 wt_client = value;
                 
                 wt_client.on('error', (error) => {
@@ -325,10 +326,10 @@ var mqttlib = new function() {
                     let topic = device_id + "/" + property_name;
                     let handlers = mqttDispatch[topic];
                     if (handlers) {
-                        console.log("HANDLER FOUND:", handlers);
-                        console.log(device_id, ':', `Property ${property_name} changed to ${value} at topic: ${topic}`);
+                        //console.log("HANDLER FOUND:", handlers);
+                        //console.log(device_id, ':', `Property ${property_name} changed to ${value} at topic: ${topic}`);
                         for( let i = 0; i < handlers.length; i++ ) {
-                            console.log("handler #: " + i);
+                            //console.log("handler #: " + i);
                             handlers[ i ]( topic,value );
                         }
                     } else {
@@ -338,16 +339,16 @@ var mqttlib = new function() {
                     
                 });
                 wt_client.on('actionTriggered', (device_id, action_name, info) => {
-                    console.log(device_id, ':', `Action ${action_name} triggered with input ${JSON.stringify(info.input)}`);
+                    //console.log(device_id, ':', `Action ${action_name} triggered with input ${JSON.stringify(info.input)}`);
                 });
                 wt_client.on('eventRaised', (device_id, event_name, info) => {
-                    console.log(device_id, ':', `Event ${event_name} raised: ${info.data}`);
+                    //console.log(device_id, ':', `Event ${event_name} raised: ${info.data}`);
                 });
                 wt_client.on('connectStateChanged', (device_id, state) => {
                     //console.log(device_id, ':', state ? 'connected' : 'disconnected');
                 });
                 wt_client.on('deviceModified', (device_id) => {
-                    console.log(device_id, ':', 'modified');
+                    //console.log(device_id, ':', 'modified');
                 });
                 wt_client.on('deviceAdded', (device_id) => {
                     //log(device_id);
@@ -376,10 +377,10 @@ var mqttlib = new function() {
                     //console.log(device.id(), ':', 'Subscribed to all events');
                 });
                 wt_client.on('deviceRemoved', (device_id) => {
-                    console.log(device_id, ':', 'removed');
+                    //console.log(device_id, ':', 'removed');
                 });
                 wt_client.on('pair', (info) => {
-                    console.log('pair', info.status);
+                    //console.log('pair', info.status);
                 });
                 
                 return wt_client;
@@ -392,7 +393,7 @@ var mqttlib = new function() {
         
         .then(
             function(value) {
-                console.log("hurray, will to to connect to webthings webclient");
+                //console.log("hurray, will to to connect to webthings webclient");
                 wt_client = value;
                 
                 ctx.webthingsClient = wt_client;
@@ -401,7 +402,7 @@ var mqttlib = new function() {
                 wt_client.connect()
                 .then( () => {
                     setTimeout(async () => {
-                        console.log("post wt connect: ctx.config: ", ctx.config);
+                        //console.log("post wt connect: ctx.config: ", ctx.config);
                         const devices = await wt_client.getDevices();
                         //console.log("post wt connect: devices keys: ", Object.keys(devices));
                         var b = 0;
@@ -427,7 +428,7 @@ var mqttlib = new function() {
                                         
                                         //if(device.description.href.endsWith('/' + first_key)){
                                         if(device.description.href == '/things/' + first_key){
-                                            console.log("subscribing to device events for: ", first_key);
+                                            //console.log("subscribing to device events for: ", first_key);
                                             await wt_client.subscribeEvents(device, device.events);
                                             ctx.device_id = first_key;
                                             ctx.device = device;
@@ -559,7 +560,7 @@ var mqttlib = new function() {
 
         // debounce
         if( config.debounceRecvms ) {
-            console.log("doing debounce. config.debounceRecvms: ", config.debounceRecvms);
+            //console.log("doing debounce. config.debounceRecvms: ", config.debounceRecvms);
             let origHandler = handler;
             let debounceTimeout = null;
             handler = function( intopic, message ) {
@@ -575,7 +576,7 @@ var mqttlib = new function() {
         let extendedTopic = null;
         // send through any apply function
         if (typeof topic != 'string') {
-            console.error("topic was not string somehow");
+            //console.error("topic was not string somehow");
             extendedTopic = topic;
             topic = extendedTopic.topic;
             if (extendedTopic.hasOwnProperty('apply')) {
@@ -604,11 +605,10 @@ var mqttlib = new function() {
             console.log("warning, doing codecDecode");
             let realHandler = handler;
             let output = function( message ) {
-                console.log("bammetje");
                 return realHandler( topic, message );
             };
             handler = function( intopic, message ) {
-                console.log("in handler");
+                console.log("in codec handler");
                 let decoded = codecDecode( message, { topic, property, extendedTopic }, output );
                 if( config.logMqtt ) {
                     log( 'codec decoded message to [' + decoded + ']' );
@@ -635,19 +635,19 @@ var mqttlib = new function() {
         }
 
         // JSONPath
-        console.log("$ topic: ", topic);
+        //console.log("$ topic: ", topic);
         const jsonpathIndex = topic?.indexOf( '/' ) ?? -1;
-        console.log("jsonpathIndex: ", jsonpathIndex);
+        //console.log("jsonpathIndex: ", jsonpathIndex);
         if( jsonpathIndex > 0 ) {
             let jsonpathQuery = topic; //topic.substring( jsonpathIndex );
             //topic = topic.substring( 0, jsonpathIndex );
 
             const lastHandler = handler;
             handler = function( intopic, message ) {
-                console.log("lastHandler: ", intopic, message);
+                //console.log("lastHandler: ", intopic, message);
                 //const json = JSON.parse( message );
                 //const output = [{"value":message}];
-                console.log("typeof message: ", typeof message);
+                //console.log("typeof message: ", typeof message);
                 const output = [message];
                 //{"name": "flex_lamp", "service_name": "light", "characteristic": "On", "value": true}
                 //const values = jsonpath.query( json, jsonpathQuery );
@@ -665,11 +665,11 @@ var mqttlib = new function() {
 
         // register MQTT dispatch and subscribe
         if( mqttDispatch.hasOwnProperty( topic ) ) {
-            console.log("new handler for existing topic: ", topic);
+            //console.log("new handler for existing topic: ", topic);
             // new handler for existing topic
             mqttDispatch[ topic ].push( handler );
         } else {
-            console.log("new topic: ", topic);
+            //console.log("new topic: ", topic);
             // new topic
             mqttDispatch[ topic ] = [ handler ];
             //mqttClient.subscribe(topic);
@@ -738,7 +738,7 @@ var mqttlib = new function() {
 
         // if confirmation isn't being used, just return a simple publishing function
         if( ! config.confirmationPeriodms || ! getTopic || ! makeConfirmed ) {
-            console.log("returning a simple publishing function");
+            //console.log("returning a simple publishing function");
             // no confirmation - return generic publishing function
             return function( message ) {
                 mqttlib.publish( ctx, setTopic, property, message );
