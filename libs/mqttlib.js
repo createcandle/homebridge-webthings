@@ -45,16 +45,16 @@ var mqttlib = new function() {
     }
 
     function optimizedPublish( topic, message, ctx ) {
-        console.log("optimizedPublish: topic: ", topic, message);
+        console.log("in optimizedPublish: topic: ", topic, message);
         //const { config, log, mqttClient } = ctx;
         const { config, log } = ctx;
         //console.log("optimizedPublish: config: " + config.to_string() );
         //console.log("optimizedPublish: log: " + log.to_string() );
         const messageString = message.toString();
-        console.log("optimizedPublish: messageString: " + messageString );
+        //console.log("optimizedPublish: messageString: " + messageString );
         if( config.optimizePublishing && ctx.lastPubValues ) {
             if( ctx.lastPubValues[ topic ] == messageString ) {
-                console.warn("optimizedPublish: not republishing same value");
+                //console.warn("optimizedPublish: not republishing same value");
                 // optimized - don't publish
                 return;
             }
@@ -76,17 +76,17 @@ var mqttlib = new function() {
                 //console.log("publish topics exists: ", ctx.config.topics);
                 
                 if(typeof ctx.device != 'undefined'){
-                    console.log("DEVICE ALREADY IN CTX");
+                    //console.log("DEVICE ALREADY IN CTX");
                     
                     try {
                         
                         let property_id = topic.substring(topic.indexOf("/") + 1,topic.length);
-                        console.log('property_id: ', property_id);
+                        //console.log('property_id: ', property_id);
                         //console.log("ctx.device.properties: ", ctx.device.properties);
                         
                         const property = ctx.device.properties[property_id];
                         if(typeof property.description != 'undefined'){
-                            console.log("property.description: ", property.description);
+                            //console.log("property.description: ", property.description);
                             if (!property.description.readOnly){
                                 
                                 const property_url = "/properties/" + property.description.name;
@@ -115,7 +115,7 @@ var mqttlib = new function() {
                                             myResolve(true);
                                         } 
                                         catch (e){
-                                            console.log("rejected");
+                                            //console.log("rejected");
                                             myReject("crash");
                                         }
                                     });
@@ -123,7 +123,7 @@ var mqttlib = new function() {
                                 }
 
                                 setProp()
-                                .then(() => { console.log("optimizedPublish: webthings setProp done") })
+                                .then(() => { //console.log("optimizedPublish: webthings setProp done") })
                                 .catch(e => {
                                     console.log("setProp error",e);
                                 });
@@ -159,8 +159,8 @@ var mqttlib = new function() {
     //! Initialise MQTT. Requires context ( { log, config } ).
     //! Context populated with mqttClient and mqttDispatch, and if publishing optimization is enabled lastPubValues.
     this.init = function( ctx ) {
-        console.log("in this.init");
-        console.log("ctx: ", ctx);
+        //console.log("in this.init");
+        //console.log("ctx: ", ctx);
         // MQTT message dispatch
         let mqttDispatch = ctx.mqttDispatch = {}; // map of topic to [ function( topic, message ) ] to handle
         let propDispatch = ctx.propDispatch = {}; // map of property to [ rawhandler( topic, message ) ]
@@ -295,7 +295,7 @@ var mqttlib = new function() {
             return;
         }
 
-        let myFunc = async function () { 
+        let doWebthingsClient = async function () { 
             let createWebthingsClient = new Promise(function(myResolve, myReject) {
             
                 let webt_client = WebThingsClient.local(token);
@@ -308,17 +308,17 @@ var mqttlib = new function() {
 
         var previous_values = {}
 
-        myFunc()
+        doWebthingsClient()
         .then(
             function(value) {
-                console.log("hurray webthings client initialised");
+                //console.log("Webthings client initialised");
                 wt_client = value;
                 
                 wt_client.on('error', (error) => {
-                    console.log('Something went wrong', error);
+                    console.log('WebthingsClient: something went wrong', error);
                 });
                 wt_client.on('close', () => {
-                    console.log('Connection closed');
+                    console.log('WebthingsClient: connection closed');
                 });
                 wt_client.on('propertyChanged', (device_id, property_name, value) => {
                     //console.log(device_id, ':', `Property ${property_name} changed to ${value}`);
@@ -329,7 +329,7 @@ var mqttlib = new function() {
                     let handlers = mqttDispatch[topic];
                     if (handlers) {
                         if(handlers.length > 0){
-                            console.log(device_id, ':', `Property ${property_name} changed to ${value}`);
+                            //console.log(device_id, ':', `Property ${property_name} changed to ${value}`);
                         }
                         if(previous_values[topic] != value){
                             previous_values[topic] = value;
@@ -362,8 +362,6 @@ var mqttlib = new function() {
     thresholds: [ 0, 1000 ]
   },
   carbonDioxideDetectedValues: [ 'normal', 'bad' ]
-                                
-                                
                             */
                             
                             
@@ -382,7 +380,7 @@ var mqttlib = new function() {
                                     
                                     // generate
                                     if(config.hack.type == 'generate'){
-                                        console.log("should generate additional opinion from: ", value, "to", config.hack.thresholds);
+                                        //console.log("should generate additional opinion from: ", value, "to", config.hack.thresholds);
                                     
                                         const generate_types = ['airQualityValues','carbonDioxideDetectedValues'];
                                         for(let x=0;x<generate_types.length;x++){
@@ -420,10 +418,10 @@ var mqttlib = new function() {
                                 
                                 
                                 if(fake_topic != null && fake_value != null){
-                                    console.log("FAKE TOPIC AND VALUE: ", fake_topic, fake_value);
+                                    //console.log("FAKE TOPIC AND VALUE: ", fake_topic, fake_value);
                                     let fake_handlers = mqttDispatch[fake_topic];
                                     for( let fh = 0; fh < fake_handlers.length; fh++ ) {
-                                        console.log("\n\nSENDING TO FAKE handler #: " + fh);
+                                        //console.log("\n\nSENDING TO FAKE handler #: " + fh);
                                         handlers[ fh ]( topic,value );
                                     }
                                 }
@@ -512,7 +510,7 @@ var mqttlib = new function() {
                 });
                 wt_client.on('deviceAdded', (device_id) => {
                     //log(device_id);
-                    console.log(device_id, ':', 'added');
+                    //console.log(device_id, ':', 'added');
                     
                     let get_device = new Promise(function(myResolve, myReject) {
                         let dev = wt_client.getDevice(device_id);
@@ -527,7 +525,7 @@ var mqttlib = new function() {
                     
                     get_device()
                     .then( (device) => { 
-                        console.log("subscribing to device event");
+                        //console.log("subscribing to device event");
                         wt_client.subscribeEvents(device, device.events);
                     });
                     
@@ -547,7 +545,7 @@ var mqttlib = new function() {
                 //myDisplayer(value);
             },
             function(error) {
-                console.log("ug oh, error in wt: ", error);
+                console.log("error in wt: ", error);
             }
         )
         
@@ -813,7 +811,7 @@ var mqttlib = new function() {
 
             const lastHandler = handler;
             handler = function( intopic, message ) {
-                console.log("lastHandler: ", intopic, message);
+                //console.log("in lastHandler: ", intopic, message);
                 
                 //console.log("\n--> CTX.device: ", ctx.device);
                 
@@ -834,7 +832,7 @@ var mqttlib = new function() {
                         if(typeof prop.description.unit != 'undefined'){
                             if(typeof config.topics.getCurrentAmbientLightLevel != 'undefined' && (prop.description.unit.toLowerCase() == 'lx' || prop.description.unit.toLowerCase() == 'lux') ){
                                 if(message == 0){
-                                    console.log("hurray, fixing lux message");
+                                    //console.log("fixing lux message");
                                     message = 0.0001
                                 }
                                 else{
@@ -843,12 +841,12 @@ var mqttlib = new function() {
                             }
                         }
                         else{
-                            console.warn("property has no unit");
+                            //console.warn("property has no unit");
                         }
                         
                     }
                     else{
-                        console.log("ctx.device exists, but didn't find property?: ", property_id);
+                        //console.log("ctx.device exists, but didn't find property?: ", property_id);
                     }
                     //console.log("\n--> CTX.device.properties: ", ctx.device.properties[property_id]);
                 
