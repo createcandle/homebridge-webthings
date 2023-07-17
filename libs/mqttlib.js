@@ -123,7 +123,7 @@ var mqttlib = new function() {
                                 }
 
                                 setProp()
-                                .then(() => { //console.log("optimizedPublish: webthings setProp done") })
+                                .then(() => { console.log("optimizedPublish: webthings setProp done") })
                                 .catch(e => {
                                     console.log("setProp error",e);
                                 });
