@@ -76,7 +76,7 @@ var mqttlib = new function() {
                 //console.log("publish topics exists: ", ctx.config.topics);
                 
                 if(typeof ctx.device != 'undefined'){
-                    //console.log("DEVICE ALREADY IN CTX");
+                    console.log("DEVICE ALREADY IN CTX");
                     
                     try {
                         
@@ -123,7 +123,7 @@ var mqttlib = new function() {
                                 }
 
                                 setProp()
-                                .then(() => { console.log("setProp done") })
+                                .then(() => { console.log("optimizedPublish: webthings setProp done") })
                                 .catch(e => {
                                     console.log("setProp error",e);
                                 });
@@ -306,10 +306,12 @@ var mqttlib = new function() {
         }
         
 
+        var previous_values = {}
+
         myFunc()
         .then(
             function(value) {
-                //console.log("hurray webthings client initialised");
+                console.log("hurray webthings client initialised");
                 wt_client = value;
                 
                 wt_client.on('error', (error) => {
@@ -326,12 +328,170 @@ var mqttlib = new function() {
                     let topic = device_id + "/" + property_name;
                     let handlers = mqttDispatch[topic];
                     if (handlers) {
-                        //console.log("HANDLER FOUND:", handlers);
-                        //console.log(device_id, ':', `Property ${property_name} changed to ${value} at topic: ${topic}`);
-                        for( let i = 0; i < handlers.length; i++ ) {
-                            //console.log("handler #: " + i);
-                            handlers[ i ]( topic,value );
+                        if(handlers.length > 0){
+                            console.log(device_id, ':', `Property ${property_name} changed to ${value}`);
                         }
+                        if(previous_values[topic] != value){
+                            previous_values[topic] = value;
+                            
+                            
+                            //console.log("\n-> config: ", config);
+                            //console.log("keys: ", Object.keys(device.description));
+                            //console.log("\n--> CTX.device: ", ctx.device);
+                            
+                            /*
+                            if(typeof config.topics.getCurrentAmbientLightLevel != 'undefined'){
+                                if(value == 0){
+                                    //console.log("increasing lux to 1...");
+                                    //value = 1;
+                                }
+                            }
+                            */
+                            
+                            
+                            
+                            
+                            /*
+  thing_id: 'z2m-0xa4c138b4793c8e79',
+  hack: {
+    type: 'generate',
+    src: 'z2m-0xa4c138b4793c8e79-co2',
+    from: 'getCarbonDioxideLevel',
+    to: 'getCarbonDioxideDetected',
+    nr: 0,
+    thresholds: [ 0, 1000 ]
+  },
+  carbonDioxideDetectedValues: [ 'normal', 'bad' ]
+                                
+                                
+                            */
+                            
+                            
+                            if(typeof config.hack != 'undefined'){
+                                //console.log("\n\nHACK DETECTED:", config.hack);
+                                //console.log("\n-> config: ", config);
+                                
+                                let fake_value = null;
+                                let fake_topic = null;
+                                
+                                // Are we dealing with the property that can be used as the source value for the hack?
+                                if(config.hack.src == property_name){
+                                    
+                                    fake_topic = device_id + "/homebridge-fake-" + config.hack.nr;
+                                    //console.log("fake_topic: ", fake_topic);
+                                    
+                                    // generate
+                                    if(config.hack.type == 'generate'){
+                                        console.log("should generate additional opinion from: ", value, "to", config.hack.thresholds);
+                                    
+                                        const generate_types = ['airQualityValues','carbonDioxideDetectedValues'];
+                                        for(let x=0;x<generate_types.length;x++){
+                                    
+                                            let hacktype = generate_types[x]; 
+                                    
+                                            if(typeof config[hacktype] != 'undefined'){
+                                                //console.log("should generate additional opinion from: ", value, "to", config.hack.thresholds);
+                                        
+                                                for(let t=0;t<config.hack.thresholds.length;t++){
+                                                    if(value >= config.hack.thresholds[t]){
+                                                        fake_value = config[hacktype][t];
+                                                    }
+                                                }
+                                                //console.log("fake_value: ", fake_value);
+                                                
+                                            }
+                                            
+                                        /*
+                                        else if(typeof config.carbonDioxideDetectedValues != 'undefined'){
+                                            //console.log("should generate additional opinion from: ", value, "to", config.hack.thresholds);
+                                        
+                                            let opinion = config.carbonDioxideDetectedValues[0];
+                                            if(value > config.hack.thresholds[1]){
+                                                opinion = config.carbonDioxideDetectedValues[1];
+                                            }
+                                            console.log("opinion: ", opinion);
+                                        }
+                                        */
+                                        }
+                                    
+                                    }
+                                    
+                                }
+                                
+                                
+                                if(fake_topic != null && fake_value != null){
+                                    console.log("FAKE TOPIC AND VALUE: ", fake_topic, fake_value);
+                                    let fake_handlers = mqttDispatch[fake_topic];
+                                    for( let fh = 0; fh < fake_handlers.length; fh++ ) {
+                                        console.log("\n\nSENDING TO FAKE handler #: " + fh);
+                                        handlers[ fh ]( topic,value );
+                                    }
+                                }
+                                
+                            }
+                            
+                            //if(typeof config.topics.getCurrentAmbientLightLevel != 'undefined'){
+                            
+                            //}
+                            
+                            
+                            /*
+                            let property_id = intopic.substring(intopic.indexOf("/") + 1, intopic.length);
+                
+                            console.log("handler: property_id: ", property_id);
+                
+                            if(typeof ctx.device != 'undefined'){
+                                if(typeof ctx.device.properties[property_id] != 'undefined'){
+                                    console.log("FOUND PROPERTY");
+                                    let prop = ctx.device.properties[property_id];
+                                    console.log("prop.description: ", Object.keys(prop.description))
+                                    console.log("config: ", config);
+                        
+                        
+                                    // Fix light intensity messages. For some reason Apple/homebridge doesn't allow the value of zero?
+                                    if(typeof prop.description.unit != 'undefined'){
+                                        if(typeof config.topics.getCurrentAmbientLightLevel != 'undefined' && (prop.description.unit.toLowerCase() == 'lx' || prop.description.unit.toLowerCase() == 'lux') ){
+                                            if(message == 0){
+                                                console.log("hurray, fixing lux message");
+                                                message = 0.0001
+                                            }
+                                            else{
+                                                console.log("lux was more than zero");
+                                            }
+                                        }
+                                    }
+                                    else{
+                                        console.warn("property has no unit");
+                                    }
+                        
+                                }
+                                else{
+                                    console.log("ctx.device exists, but didn't find property?: ", property_id);
+                                }
+                                //console.log("\n--> CTX.device.properties: ", ctx.device.properties[property_id]);
+                
+                
+                
+                                //console.log("device property keys: ", Object.keys(ctx.device.properties));
+                            }
+                            else{
+                                console.log("lasthandler: device was still undefined");
+                            }
+                            */
+                            
+                            
+                            
+                            //console.log("HANDLER FOUND:", handlers);
+                            //console.log(device_id, ':', `Property ${property_name} changed to ${value} at topic: ${topic}`);
+                            for( let i = 0; i < handlers.length; i++ ) {
+                                //console.log("handler #: " + i, handlers[ i ]);
+                                handlers[ i ]( topic,value );
+                            }
+                        }
+                        else{
+                            //console.log("already in previous_values: ", topic, value);
+                        }
+                        
                     } else {
                         //log('Warning: No MQTT dispatch handler for topic [' + topic + ']');
                     }
@@ -352,7 +512,7 @@ var mqttlib = new function() {
                 });
                 wt_client.on('deviceAdded', (device_id) => {
                     //log(device_id);
-                    //console.log(device_id, ':', 'added');
+                    console.log(device_id, ':', 'added');
                     
                     let get_device = new Promise(function(myResolve, myReject) {
                         let dev = wt_client.getDevice(device_id);
@@ -416,22 +576,26 @@ var mqttlib = new function() {
                             try{
                                 if(typeof ctx.config.topics != 'undefined'){
                                     //console.log("topics exists: ", ctx.config.topics);
-                                    var first_key = Object.keys(ctx.config.topics)[0];
-                                    first_key = ctx.config.topics[first_key];
-                                    //console.log("first topic: ", first_key);
-                                    //if(first_key.length > 2){
-                                    if(first_key.indexOf("/") > -1){
+                                    var first_topic = Object.keys(ctx.config.topics)[0];
+                                    //console.log("first_topic: ", first_topic);
+                                    first_topic = ctx.config.topics[first_topic];
+                                    if(first_topic.indexOf("/") > -1){
                                         //console.log("topic has slash");
-                                        first_key = first_key.substring(0, first_key.indexOf("/"));
-                                        //console.log("first_key: ", first_key);
+                                        const device_id = first_topic.substring(0, first_topic.indexOf("/"));
+                                        //console.log("device_id: ", device_id);
                                         //console.log("device.description.href: ", device.description.href);
                                         
-                                        //if(device.description.href.endsWith('/' + first_key)){
-                                        if(device.description.href == '/things/' + first_key){
-                                            //console.log("subscribing to device events for: ", first_key);
+                                        if(device.description.href == '/things/' + device_id){
+                                            
+                                            //property_id = first_topic.substring(first_topic.indexOf("/") + 1, first_topic.length);
+                                            //console.log("property_id: ", property_id);
+                                            console.log("subscribing to device events for: ", device_id, device.description.title);
                                             await wt_client.subscribeEvents(device, device.events);
-                                            ctx.device_id = first_key;
+                                            ctx.device_id = device_id;
                                             ctx.device = device;
+                                        }
+                                        else{
+                                            //console.error("no device url match: ", device_id);
                                         }
                                     }
                                 }
@@ -545,9 +709,14 @@ var mqttlib = new function() {
         }
     }
 
+
+
+
+
     // Subscribe
+
     this.subscribe = function( ctx, topic, property, handler ) {
-        console.log("mqttlib: in subscribe. topic: ", topic);
+        console.log("mqttlib: in subscribe. topic, property: ", topic, property);
         let rawHandler = handler;
         //let { mqttDispatch, log, mqttClient, codec, propDispatch, config } = ctx;
         let { mqttDispatch, log, codec, propDispatch, config } = ctx;
@@ -644,7 +813,70 @@ var mqttlib = new function() {
 
             const lastHandler = handler;
             handler = function( intopic, message ) {
-                //console.log("lastHandler: ", intopic, message);
+                console.log("lastHandler: ", intopic, message);
+                
+                //console.log("\n--> CTX.device: ", ctx.device);
+                
+                
+                let property_id = intopic.substring(intopic.indexOf("/") + 1, intopic.length);
+                
+                //console.log("handler: property_id: ", property_id);
+                
+                if(typeof ctx.device != 'undefined'){
+                    if(typeof ctx.device.properties[property_id] != 'undefined'){
+                        //console.log("FOUND PROPERTY");
+                        let prop = ctx.device.properties[property_id];
+                        //console.log("prop.description: ", Object.keys(prop.description))
+                        //console.log("config: ", config);
+                        
+                        
+                        // Fix light intensity messages. For some reason Apple/homebridge doesn't allow the value of zero?
+                        if(typeof prop.description.unit != 'undefined'){
+                            if(typeof config.topics.getCurrentAmbientLightLevel != 'undefined' && (prop.description.unit.toLowerCase() == 'lx' || prop.description.unit.toLowerCase() == 'lux') ){
+                                if(message == 0){
+                                    console.log("hurray, fixing lux message");
+                                    message = 0.0001
+                                }
+                                else{
+                                    //console.log("lux was more than zero");
+                                }
+                            }
+                        }
+                        else{
+                            console.warn("property has no unit");
+                        }
+                        
+                    }
+                    else{
+                        console.log("ctx.device exists, but didn't find property?: ", property_id);
+                    }
+                    //console.log("\n--> CTX.device.properties: ", ctx.device.properties[property_id]);
+                
+                
+                
+                    //console.log("device property keys: ", Object.keys(ctx.device.properties));
+                }
+                else{
+                    console.log("lasthandler: device was still undefined");
+                }
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
                 //const json = JSON.parse( message );
                 //const output = [{"value":message}];
                 //console.log("typeof message: ", typeof message);
@@ -676,7 +908,13 @@ var mqttlib = new function() {
         }
     };
 
+
+
+
+
+
     // Publish
+    
     this.publish = function( ctx, topic, property, message ) {
         console.log("mqttlib: in publish. topic: ", topic);
         // let { log, mqttClient, codec } = ctx;
@@ -730,8 +968,12 @@ var mqttlib = new function() {
             publishImpl( message );
         }
     };
+    
+    
+    
 
     // Confirmed publisher
+    
     this.makeConfirmedPublisher = function( ctx, setTopic, getTopic, property, makeConfirmed ) {
         console.log("mqttlib: in makeConfirmedPublisher. setTopic: ", setTopic);
         let { state, config, log } = ctx;
